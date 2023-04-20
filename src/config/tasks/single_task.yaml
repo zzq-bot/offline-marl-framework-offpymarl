@@ -1,0 +1,16 @@
+# ----- marine battle setting config -----
+
+# get env information
+env: "sc2"
+# get task information
+task: "single-task"
+# define train tasks and test tasks
+train_tasks: ["3m"]
+train_tasks_data_quality: {
+    "3m": "expert",
+}
+
+tasks_offline_bottom_data_paths: {
+  "3m": "",
+}
+test_tasks: ["3m"]

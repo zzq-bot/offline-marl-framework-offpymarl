@@ -1,0 +1,20 @@
+# ----- marine battle setting config -----
+
+# get env information
+env: "sc2"
+# get task information
+task: "marine-easy"
+# define train tasks and test tasks
+train_tasks: ["3m", "5m", "10m"]
+train_tasks_data_quality: {
+    "3m": "expert",
+    "5m": "expert",
+    "10m": "expert",
+}
+
+tasks_offline_bottom_data_paths: {
+  "3m": "",
+  "5m": "",
+  "10m": "",
+}
+test_tasks: ["3m", "5m", "10m"]

@@ -1,0 +1,3 @@
+## bash debug/collect_data/lbf_collect.sh 0 qmix lbforaging:Foraging-2s-6x6-2p-1f-topright-v1 25 random 0 400000/might biggern 2050000
+export CUDA_VISIBLE_DEVICES=$1
+python src/main.py --collect --config=$2 --env-config=gymma_collect --key=$3 --time_limit=$4 --offline_data_quality=$5 --stop_return=$6 --t_max=$7 --save_replay_buffer=True --num_episodes_collected=4000 --seed=0 --standardise_rewards=True

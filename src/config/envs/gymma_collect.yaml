@@ -1,0 +1,23 @@
+env: "gymma"
+
+env_args:
+  key: null
+  time_limit: 100
+  pretrained_wrapper: null
+
+test_greedy: True
+test_nepisode: 32
+test_interval: 10000
+log_interval: 10000
+runner_log_interval: 10000
+learner_log_interval: 10000
+t_max: 2050000
+
+# offline collection config
+num_episodes_collected: 4000
+offline_data_quality: "medium"
+offline_data_folder: "dataset"
+save_replay_buffer: True
+stop_winrate: 0.0
+stop_return: 0
+max_size: 2000

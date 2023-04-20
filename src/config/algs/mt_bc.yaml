@@ -1,0 +1,37 @@
+# --- MT_BC specific parameters ---
+
+# use multinomial selector
+action_selector: "multinomial"
+epsilon_start: .5
+epsilon_finish: .01
+epsilon_anneal_time: 50000
+
+runner: "mt_episode"
+
+buffer_size: 5000
+
+# use the BC_Learner to train
+agent_output_type: "pi_logits"
+learner: "mt_bc_learner"
+double_q: True
+mixer: 
+
+
+# agent type
+agent: "mt_rnn"
+
+# mac
+mac: "mt_basic_mac"
+
+# params about observation decomposition
+id_length: 4
+max_agent: 15
+
+
+# params about mt mixing network
+entity_embed_dim: 64
+attn_embed_dim: 8
+head: 1
+
+
+name: "mt_bc"

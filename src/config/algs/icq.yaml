@@ -1,0 +1,44 @@
+# --- ICQ specific parameters ---
+
+action_selector: "multinomial"
+epsilon_start: .5
+epsilon_finish: .05
+epsilon_anneal_time: 500000
+mask_before_softmax: False
+
+runner: "episode"
+
+buffer_size: 32
+off_buffer_size: 70000 # size of the off-policy buffer default: 5000
+batch_size_run: 1 # 10
+batch_size: 16
+
+
+env_args:
+  state_last_action: False # critic adds last action internally
+
+# update the target network every {} training steps
+target_update_interval_or_tau: 600
+step: 5 #steps for tree back up diagram  (adjustable based on # of agents)
+
+
+lr: 0.0005
+critic_lr: 0.0001
+td_lambda: 0.8
+
+# use qmix
+mixing_embed_dim: 32
+hypernet_layers: 1
+
+critic_hidden_dim: 256
+optim_type: "rmsprop"
+icq_alpha: 0.1
+icq_beta: 1000
+
+# use COMA
+agent_output_type: "pi_logits"
+learner: "icq_learner"
+q_nstep: 0  # 0 corresponds to default Q, 1 is r + gamma*Q, etc
+
+name: "icq"
+

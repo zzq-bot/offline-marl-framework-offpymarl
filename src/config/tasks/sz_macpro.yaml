@@ -1,0 +1,22 @@
+# ----- sz battle setting config -----
+
+# get env information
+env: "sc2"
+# get task information
+task: "sz-macpro"
+# define train tasks and test tasks
+train_tasks: ["2s3z", "2s1z_vs_3z", "3s5z", "2s2z_vs_4z"]
+train_tasks_data_quality: {
+    "2s3z": "expert",
+    "2s1z_vs_3z": "expert",
+    "3s5z": "expert",
+    "2s2z_vs_4z": "expert"
+}
+
+tasks_offline_bottom_data_paths: {
+    "2s3z": "", 
+    "2s1z_vs_3z": "",
+    "3s5z": "",
+    "2s2z_vs_4z": ""
+}
+test_tasks: ["2s3z", "2s1z_vs_3z", "3s5z", "2s2z_vs_4z"]

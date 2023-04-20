@@ -1,0 +1,22 @@
+# ----- marine battle setting config -----
+
+# get env information
+env: "sc2"
+# get task information
+task: "msz_step"
+# define train tasks and test tasks
+train_tasks: ["3m", "5m", "2s3z","3s5z"]
+train_tasks_data_quality: {
+    "3m": "expert",
+    "5m": "expert",
+    "2s3z": "expert",
+    "3s5z": "expert"
+}
+
+tasks_offline_bottom_data_paths: {
+    "3m": "",
+    "5m": "",
+    "2s3z": "",
+    "3s5z": ""
+}
+test_tasks: ["3m", "5m", "2s3z","3s5z"]

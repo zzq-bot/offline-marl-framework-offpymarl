@@ -1,0 +1,35 @@
+# --- ITD3+BC specific parameters ---
+
+runner: "episode"
+
+buffer_size: 50000
+# update the target network every {} episodes
+target_update_interval_or_tau: .005
+
+obs_agent_id: True
+obs_last_action: False
+obs_individual_obs: True
+
+
+# use the madddpg_learner to train
+mac: "maddpg_mac"
+reg: 0.001
+batch_size: 32
+lr: 0.0003
+use_rnn: False # better withoyt rnn (at least on expert data)
+
+standardise_returns: False
+standardise_rewards: True
+
+learner: "itd3_learner"
+agent_output_type: "pi_logits"
+hidden_dim: 128
+critic_type: "itd3_critic"
+
+optim_type: "adam"
+actor_freq: 2
+td3_alpha: 2.5
+critic_rnn: True
+
+name: "itd3_bc"
+

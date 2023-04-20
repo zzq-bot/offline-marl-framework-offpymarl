@@ -1,0 +1,23 @@
+# ----- marine battle setting config -----
+
+# get env information
+env: "sc2"
+# get task information
+task: "msz_hard"
+# define train tasks and test tasks
+train_tasks: ["5m_vs_6m", "9m_vs_10m", "2s2z_vs_4z","2s1z_vs_3z"]
+train_tasks_data_quality: {
+    "5m_vs_6m": "expert",
+    "9m_vs_10m": "expert",
+    "2s2z_vs_4z": "expert",
+    "2s1z_vs_3z": "expert"
+}
+
+tasks_offline_bottom_data_paths: {
+    "5m_vs_6m": "",
+    "9m_vs_10m": "",
+    "2s2z_vs_4z": "",
+    "2s1z_vs_3z": ""
+}
+
+test_tasks: ["5m_vs_6m", "9m_vs_10m", "2s2z_vs_4z","2s1z_vs_3z"]
