@@ -34,13 +34,15 @@ see debug/collect_data/evaluate.sh if you want to use trained checkpoint to coll
 
 ## Offline Training
 ```bash
-python src/main.py --offline --config=qmix --env-config=sc2_offline with env_args.map_name=3m t_max=40000 test_interval=250 log_interval=250 runner_log_interval=250 learner_log_interval=250 save_model_interval=10000 --seed=<seed>
+python src/main.py --offline --config=<alg_name> --env-config=sc2_offline --map_name=<sc2_map>  --offline_data_quality=<data_quality> --seed=<seed> --t_max=40000 --test_interval=250 --log_interval=250 --runner_log_interval=250 --learner_log_interval=250 --save_model_interval=100001 
 ```
+see test/offline_train for more information.
 
 ## MultiTask Offline Training
 ```bash
-python src/main.py --mto --config=mt_qmix_cql --env-config=sc2_offline --task-config=$2  --t_max=40000 --test_interval=250 --log_interval=250 --runner_log_interval=250 --learner_log_interval=250 --save_model_interval=10000 --seed=<seed>
+python src/main.py --mto --config=<alg_name> --env-config=sc2_offline --task-config=<task_name> --customized_quality=<data_quality> --seed=<seed> --t_max=40000 --test_interval=250 --log_interval=250 --runner_log_interval=250 --learner_log_interval=250 --save_model_interval=10000
 ```
+see test/mto for more information.
 
 ## Citing OffPyMARL
 
