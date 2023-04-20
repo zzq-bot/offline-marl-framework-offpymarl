@@ -60,4 +60,4 @@ If you use OfflineRL-Lib in your work, please use the following bibtex
 ```
 
 ## Acknowledgements
-We thank [ODIS](https://github.com/LAMDA-RL/ODIS) for providing data collection related code.
+We thank [ODIS](https://github.com/LAMDA-RL/ODIS) for providing data collection related code and [EPyMARL](https://github.com/uoe-agents/epymarl) for providing MADDPG related code.
