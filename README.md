@@ -6,6 +6,7 @@ OffPyMARL provides unofficial and benchmarked PyTorch implementations for select
 - BC
 - VDN+CQL
 - QMIX+CQL
+- ITD3+BC
 - MATD3+BC
 - MAICQ
 
