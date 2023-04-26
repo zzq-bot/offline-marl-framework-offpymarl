@@ -56,7 +56,7 @@ If you use OfflineRL-Lib in your work, please use the following bibtex
   year = {2023},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/zzq-bot/offpymarl}},
+  howpublished = {\url{https://github.com/zzq-bot/offline-marl-framwork-offpymarl}},
 }
 ```
 
