@@ -1,4 +1,4 @@
-# OffPyMARL
+# Offline MARL framework - OffPyMARL
 > 🚧 This repo is not ready for release, benchmarking is ongoing. 🚧
 
 OffPyMARL provides unofficial and benchmarked PyTorch implementations for selected Offline MARL algorithms, including:
