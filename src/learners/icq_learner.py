@@ -89,9 +89,8 @@ class ICQLearner:
         pi = mac_out / mac_out.sum(dim=-1, keepdim=True) # normalize again over actions
         pi[avail_actions == 0] = 0
         pi_taken = th.gather(pi, dim=3, index=actions).squeeze(3)
-
-       
         # (bs , (T-1) , n_agents,)
+        
         pi_taken[mask == 0] = 1.0
         assert not th.isnan(pi_taken).any()
         log_pi_taken = th.log(pi_taken)
@@ -130,8 +129,11 @@ class ICQLearner:
 
 
     def train_critic(self, batch: EpisodeBatch):
-        critic_log = {}
-
+        critic_log = {  "critic_loss":[],
+                        "critic_grad_norm":[],  
+                        "td_error_abs":[], 
+                        "target_mean":[], 
+                        "q_taken_mean":[]}
         bs = batch.batch_size
         max_t = batch.max_seq_length
 
@@ -161,7 +163,36 @@ class ICQLearner:
             target_q = build_td_lambda_targets(rewards, terminated, mask, targets_taken, self.n_agents, self.args.gamma, self.args.td_lambda)
             target_q = target_q.detach()
             # (bs, seq_len-1, 1)
+        for t in range(max_t - 1):
+            mask_t = mask[:, t:t+1]
+            if mask_t.sum() < 0.5:
+                continue
+            q_vals = self.critic(critic_inputs[:, t:t+1])
+            q_vals = th.gather(q_vals, 3, index=actions[:, t:t+1]).squeeze(3)
+            q_vals = self.mixer.icq_forward(q_vals, states[:, t:t+1])
 
+            target_q_t = target_q[:, t:t+1].detach()
+            q_err = (q_vals - target_q_t) * mask_t
+            critic_loss = (q_err ** 2).sum() / mask_t.sum()
+
+            self.critic_optimiser.zero_grad()
+            self.mixer_optimiser.zero_grad()
+            critic_loss.backward()
+            critic_grad_norm = th.nn.utils.clip_grad_norm_(self.c_params, self.args.grad_norm_clip)
+            self.critic_optimiser.step()
+            self.mixer_optimiser.step()
+    
+            critic_log["critic_loss"].append(critic_loss.item())
+            critic_log["critic_grad_norm"].append(critic_grad_norm.item())
+            mask_elems = mask_t.sum().item()
+            critic_log["td_error_abs"].append(((q_err.abs().sum().item() / mask_elems)))
+            critic_log["target_mean"].append((target_q_t * mask_t).sum().item() / mask_elems)
+            critic_log["q_taken_mean"].append((q_vals* mask_t).sum().item() / mask_elems)
+        for k in critic_log.keys():
+            critic_log[k] = np.mean(critic_log[k])
+        return critic_log
+        
+        # not stable
         q_vals = self.critic(critic_inputs[:, :max_t-1])
         chosen_action_q_vals = th.gather(q_vals, 3, index=actions[:, :max_t-1])
         chosen_action_q_vals = self.mixer.icq_forward(chosen_action_q_vals, states[:, :max_t-1]) 
