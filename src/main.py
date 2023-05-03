@@ -196,7 +196,6 @@ if __name__ == '__main__':
     else:
         config_dict['remark'] = ''
 
-    print(config_dict["offline_data_quality"])
     unique_token = "seed_{}_{}{}_{}".format(config_dict['seed'], config_dict['name'], config_dict['remark'], datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
     config_dict['unique_token'] = unique_token
 
