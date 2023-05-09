@@ -241,7 +241,7 @@ def train_sequential(args, logger, learner, runner, offline_buffer):
             logger.log_stat("episode", episode, t_env)
             logger.print_recent_stats()
 
-    logger.console_logger.info("Finsh training sequential")
+    logger.console_logger.info("Finish training sequential")
             
 
 
