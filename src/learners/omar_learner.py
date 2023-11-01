@@ -1,6 +1,6 @@
 import copy
 from components.episode_buffer import EpisodeBatch
-from modules.critics.discrete_critic import DoubleMLPNetwork
+from modules.critics.double import DoubleCritic
 import torch as th
 from utils.rl_utils import build_td_lambda_targets
 from torch.optim import Adam, RMSprop
@@ -19,9 +19,8 @@ class OMARLearner:
         self.critic_training_steps = 0
 
         self.log_stats_t = -self.args.learner_log_interval - 1
-
-        assert 0, "create critic"
-        self.critic = DoubleMLPNetwork(scheme, args)
+        
+        self.critic = DoubleCritic(scheme, args)
         # self.mixer = QMixer(args)
         self.target_critic = copy.deepcopy(self.critic)
         # self.target_mixer = copy.deepcopy(self.mixer)
@@ -50,6 +49,8 @@ class OMARLearner:
         actions = batch["actions"][:, :-1]
         max_t = actions.shape[1]+1
         bs = actions.shape[0]
+        assert bs == batch.batch_size
+        assert max_t == batch.max_seq_length
         n_agents = actions.shape[2]
         
         terminated = batch["terminated"][:, :-1].float()
@@ -79,7 +80,7 @@ class OMARLearner:
         if th.any(th.isnan(mac_out)):
             assert 0, "nan"
         #build q
-        inputs = self.critic._build_inputs(batch, bs, max_t)
+        inputs = self.critic.build_inputs(batch)
         q_vals,_ = self.critic.forward(inputs[:,:-1])#bs,ts,na,ad
         # coma_loss = - (q_vals_taken * mask).sum() / mask.sum()
         
@@ -180,6 +181,8 @@ class OMARLearner:
         actions = on_batch["actions"][:, :]
         max_t = actions.shape[1]
         bs = actions.shape[0]
+        assert max_t == on_batch.max_seq_length
+        assert bs == on_batch.batch_size
         n_agents = actions.shape[2]
         terminated = on_batch["terminated"][:, :-1].float()
         mask = on_batch["filled"][:, :-1].float()
@@ -198,7 +201,7 @@ class OMARLearner:
             target_mac_out[avail_actions == 0] = 0
             target_policy_action = th.argmax(target_mac_out,dim=-1,keepdim=True)
 
-            target_inputs = self.target_critic._build_inputs(on_batch, bs, max_t)
+            target_inputs = self.target_critic.build_inputs(on_batch)
             target_q_vals_1,target_q_vals_2 = self.target_critic.forward(target_inputs)
             target_q_vals_taken_1=th.gather(target_q_vals_1,dim=-1,index=target_policy_action.long())
             target_q_vals_taken_2=th.gather(target_q_vals_2,dim=-1,index=target_policy_action.long())
@@ -209,7 +212,7 @@ class OMARLearner:
             target_q_1 = build_td_lambda_targets(repeat_r, repeat_terminated, repeat_mask, target_q_vals_taken_1, self.n_agents, self.args.gamma, self.args.td_lambda).detach()
             target_q_2 = build_td_lambda_targets(repeat_r, repeat_terminated, repeat_mask, target_q_vals_taken_2, self.n_agents, self.args.gamma, self.args.td_lambda).detach()
             target_q = th.min(target_q_1,target_q_2).detach()
-        inputs = self.critic._build_inputs(on_batch, bs, max_t)
+        inputs = self.critic.build_inputs(on_batch)
 
         #train critic
         log={}

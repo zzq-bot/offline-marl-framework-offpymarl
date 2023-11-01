@@ -25,6 +25,7 @@ critic_lr: 0.001
 td_lambda: 0.6
 cql_alpha: 5.0
 
+critic_hidden_dim: 256
 
 omar_iters: 5
 omar_coe: 0.5
