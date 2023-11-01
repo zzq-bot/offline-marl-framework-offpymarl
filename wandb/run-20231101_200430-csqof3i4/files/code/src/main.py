@@ -197,7 +197,7 @@ if __name__ == '__main__':
         config_dict['remark'] = ''
 
     # result_dir_format: {run_file}/{Y_M_D}/.../{remark}/{seed}_{HMS}
-    Y_M_D, H_M_S = datetime.datetime.now().strftime("%Y_%m_%d %H_%M_%S").split()
+    Y_M_D, H_M_S = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S").split()
     unique_token = "seed_{}_{}".format(config_dict['seed'], H_M_S)
 
     config_dict['unique_token'] = unique_token

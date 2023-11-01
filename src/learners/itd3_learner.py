@@ -67,7 +67,7 @@ class ITD3Learner:
     
 
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
-        critic_log = self.train_critic(batch)
+        critic_log, top_acs = self.train_critic(batch)
         
         if (self.training_steps + 1) % self.actor_freq == 0:
             batch_size = batch.batch_size
@@ -108,52 +108,54 @@ class ITD3Learner:
                 actor_loss = td3_loss + bc_loss
                 
             elif "omar" in self.args.name:
-                raise NotImplementedError("Sth should be corrected with omar in discrete, sigma tends to be zero")
-                # Problem, how to define avail_actions?
-                self.omar_mu = th.zeros((batch_size, batch.max_seq_length-1, self.n_agents, self.n_actions)) + self.init_omar_mu
-                self.omar_sigma = th.zeros((batch_size, batch.max_seq_length-1, self.n_agents, self.n_actions)) + self.init_omar_sigma + 1e-5
-                self.omar_mu = self.omar_mu.to(batch.device)
-                self.omar_sigma = self.omar_sigma.to(batch.device)
-                formatted_critic_inputs = critic_inputs.unsqueeze(0).repeat(self.omar_num_samples, 1, 1, 1, 1).\
-                    view(self.omar_num_samples * batch_size, batch.max_seq_length, self.n_agents, -1)[:, :-1]
-                formatted_avail_actions = avail_actions.unsqueeze(0).repeat(self.omar_num_samples, 1, 1, 1, 1).\
-                    view(self.omar_num_samples * batch_size, -1, self.n_agents, self.n_actions)
-                for iter_idx in range(self.omar_iters):
-                    # print(th.all(self.omar_mu>=0), th.all(self.omar_sigma >= 0))
-                    # assert th.all(self.omar_sigma >= 0)
-                    # self.omar_sigma = th.zeros((batch_size, batch.max_seq_length-1, self.n_agents, self.n_actions)) + self.init_omar_sigma
-                    # self.omar_sigma = self.omar_sigma.to(batch.device)
-                    dist = th.distributions.Normal(self.omar_mu, self.omar_sigma)
-                    cem_sampled_acs = dist.sample((self.omar_num_samples,)).detach() # (samples, bs, T-1, n_agents, n_actions)
-                    cem_sampled_acs = cem_sampled_acs.view(self.omar_num_samples * batch_size, -1, self.n_agents, self.n_actions)
-                    cem_sampled_acs[formatted_avail_actions == 0] = -1e10
-                    discrete_cem_sampled_acs = F.one_hot(cem_sampled_acs.argmax(dim=-1))  # (samples*bs, T-1, n_agents, n_actions)
-                    # print(discrete_cem_sampled_acs.shape, formatted_critic_inputs.shape)
-                    all_pred_qvals = self.critic1(formatted_critic_inputs, discrete_cem_sampled_acs).\
-                        view(self.omar_num_samples, batch_size, -1, self.n_agents, 1)
-                    discrete_cem_sampled_acs = discrete_cem_sampled_acs.\
-                        view(self.omar_num_samples, batch_size, -1, self.n_agents, self.n_actions)
+                raise NotImplementedError("Omar is not implemented yet")
+                # Omar
+                # self.omar_mu = th.zeros((batch_size, batch.max_seq_length-1, self.n_agents, self.n_actions)) + self.init_omar_mu
+                # self.omar_sigma = th.zeros((batch_size, batch.max_seq_length-1, self.n_agents, self.n_actions)) + self.init_omar_sigma + 1e-5
+                # self.omar_mu = self.omar_mu.to(batch.device)
+                # self.omar_sigma = self.omar_sigma.to(batch.device)
+                # formatted_critic_inputs = critic_inputs.unsqueeze(0).repeat(self.omar_num_samples, 1, 1, 1, 1).\
+                #     view(self.omar_num_samples * batch_size, batch.max_seq_length, self.n_agents, -1)[:, :-1]
+                # formatted_avail_actions = avail_actions.unsqueeze(0).repeat(self.omar_num_samples, 1, 1, 1, 1).\
+                #     view(self.omar_num_samples * batch_size, -1, self.n_agents, self.n_actions)
+                # for iter_idx in range(self.omar_iters):
+                #     # print(th.all(self.omar_mu>=0), th.all(self.omar_sigma >= 0))
+                #     # assert th.all(self.omar_sigma >= 0)
+                #     # self.omar_sigma = th.zeros((batch_size, batch.max_seq_length-1, self.n_agents, self.n_actions)) + self.init_omar_sigma
+                #     # self.omar_sigma = self.omar_sigma.to(batch.device)
+                #     dist = th.distributions.Normal(self.omar_mu, self.omar_sigma)
+                #     cem_sampled_acs = dist.sample((self.omar_num_samples,)).detach() # (samples, bs, T-1, n_agents, n_actions)
+                #     cem_sampled_acs = cem_sampled_acs.view(self.omar_num_samples * batch_size, -1, self.n_agents, self.n_actions)
+                #     cem_sampled_acs[formatted_avail_actions == 0] = -1e10
+                #     discrete_cem_sampled_acs = F.one_hot(cem_sampled_acs.argmax(dim=-1))  # (samples*bs, T-1, n_agents, n_actions)
+                #     # print(discrete_cem_sampled_acs.shape, formatted_critic_inputs.shape)
+                #     all_pred_qvals = self.critic1(formatted_critic_inputs, discrete_cem_sampled_acs).\
+                #         view(self.omar_num_samples, batch_size, -1, self.n_agents, 1)
+                #     discrete_cem_sampled_acs = discrete_cem_sampled_acs.\
+                #         view(self.omar_num_samples, batch_size, -1, self.n_agents, self.n_actions)
             
-                    # self.omar_mu = self._compute_softmax_acs(all_pred_qvals, discrete_cem_sampled_acs)
-                    cem_sampled_acs = cem_sampled_acs.view(self.omar_num_samples, batch_size, -1, self.n_agents, self.n_actions)
-                    self.omar_mu = self._compute_softmax_acs(all_pred_qvals, cem_sampled_acs)
-                    # self.omar_sigma  = th.sqrt(th.mean((discrete_cem_sampled_acs - self.omar_mu.unsqueeze(0)) ** 2, 0)) + 1e-5
-                    self.omar_sigma  = th.sqrt(th.mean((cem_sampled_acs - self.omar_mu.unsqueeze(0)) ** 2, 0)) + 1e-5
+                #     # self.omar_mu = self._compute_softmax_acs(all_pred_qvals, discrete_cem_sampled_acs)
+                #     cem_sampled_acs = cem_sampled_acs.view(self.omar_num_samples, batch_size, -1, self.n_agents, self.n_actions)
+                #     self.omar_mu = self._compute_softmax_acs(all_pred_qvals, cem_sampled_acs)
+                #     # self.omar_sigma  = th.sqrt(th.mean((discrete_cem_sampled_acs - self.omar_mu.unsqueeze(0)) ** 2, 0)) + 1e-5
+                #     self.omar_sigma  = th.sqrt(th.mean((cem_sampled_acs - self.omar_mu.unsqueeze(0)) ** 2, 0)) + 1e-5
 
-                top_qvals, top_inds = th.topk(all_pred_qvals, 1, dim=0)
-                top_inds = top_inds # (1, bs, T-1, n_agents, 1)
-                top_acs = th.gather(discrete_cem_sampled_acs, dim=0, index=top_inds).squeeze(0).argmax(dim=-1) # (bs, T-1, n_agents)
+                # top_qvals, top_inds = th.topk(all_pred_qvals, 1, dim=0)
+                # top_inds = top_inds # (1, bs, T-1, n_agents, 1)
+                # top_acs = th.gather(discrete_cem_sampled_acs, dim=0, index=top_inds).squeeze(0).argmax(dim=-1) # (bs, T-1, n_agents)
                 
-                pis = th.cat(pis, dim=1) # (bs, (T-1), n_agents, n_actions)
-                pis_mask = mask.expand_as(pis)
-                pis = pis.reshape(-1, self.n_actions)
-                omar_loss = F.cross_entropy(pis, top_acs.reshape(-1).detach(), reduction="mean")
-                omar_loss = omar_loss / (pis_mask.sum())
+                # get top_acs from q_values
+                # assert top_acs is not None
+                # pis = th.cat(pis, dim=1) # (bs, (T-1), n_agents, n_actions)
+                # pis_mask = mask.expand_as(pis)
+                # pis = pis.reshape(-1, self.n_actions)
+                # omar_loss = F.cross_entropy(pis, top_acs.reshape(-1).detach(), reduction="mean")
+                # omar_loss = omar_loss / (pis_mask.sum())
 
-                mask = mask.reshape(-1, 1)
-                td3_loss =  -(q * mask).mean() 
+                # mask = mask.reshape(-1, 1)
+                # td3_loss =  -(q * mask).mean() 
 
-                actor_loss = (1 - self.omar_coe) * td3_loss + self.omar_coe * omar_loss 
+                # actor_loss = (1 - self.omar_coe) * td3_loss + self.omar_coe * omar_loss 
             else: 
                 pis = th.cat(pis, dim=1) # (bs, (T-1), n_agents, n_actions)
                 pis[pis==-1e10] = 0
@@ -180,10 +182,10 @@ class ITD3Learner:
             if "bc" in self.args.name:
                 self.log_actor["bc_loss"].append(bc_loss.item())
                 self.log_actor["td3_loss"].append(td3_loss.item())
-            if "omar" in self.args.name:
-                raise NotImplementedError("Omar is not implemented yet")
-                self.log_actor["omar_loss"].append(omar_loss.item())
-                self.log_actor["td3_loss"].append(td3_loss.item())
+            # if "omar" in self.args.name:
+            #     #raise NotImplementedError("Omar is not implemented yet")
+            #     self.log_actor["omar_loss"].append(omar_loss.item())
+            #     self.log_actor["td3_loss"].append(td3_loss.item())
 
         self.training_steps += 1
         if t_env - self.log_stats_t >= self.args.learner_log_interval:
@@ -199,6 +201,7 @@ class ITD3Learner:
 
     def train_critic(self, batch: EpisodeBatch):
         critic_log = {}
+        top_acs = None
         batch_size = batch.batch_size
 
         rewards = batch["reward"][:, :-1] # (bs, T-1, 1)
@@ -259,36 +262,38 @@ class ITD3Learner:
         masked_td_error2  = td_error2 * mask.reshape(-1, 1)
         td_loss = 0.5 * (masked_td_error1 ** 2).mean() + 0.5 * (masked_td_error2 ** 2).mean()
 
-        if "cql" in self.args.name and getattr(self.args, "cql_type", "vanilla")=="vanilla":
-            # get over actions
-            assert self.args.critic_rnn is False
-            consq1 = []
-            consq2 = []
-            for i in range(self.n_actions):
-                consq1_i, consq2_i = [], []
-                self.critic1.init_hidden(batch.batch_size)
-                self.critic2.init_hidden(batch.batch_size)
-                tmp_action = th.zeros(batch.batch_size, self.n_agents, self.n_actions).to(batch.device)
-                tmp_action[:, :, i] = 1
-                for t in range(batch.max_seq_length-1):
-                    consq1_i.append(self.critic1(critic_inputs[:, t], tmp_action))
-                    consq2_i.append(self.critic2(critic_inputs[:, t], tmp_action))
-                consq1_i = th.stack(consq1_i, dim=1) # (bs, T-1, n_agents, 1)
-                consq2_i = th.stack(consq2_i, dim=1) # (bs, T-1, n_agents, 1)
-                consq1.append(consq1_i)
-                consq2.append(consq2_i)
-            consq1 = th.cat(consq1, dim=-1)
-            consq2 = th.cat(consq2, dim=-1)
-            consq1[avail_actions == 0] = 0
-            consq2[avail_actions == 0] = 0
-            cql_loss1 = ((th.logsumexp(consq1, dim=-1).reshape(-1, 1) - q_taken1.reshape(-1, 1)) * mask.reshape(-1, 1)).sum() / mask.sum()
-            cql_loss2 = ((th.logsumexp(consq2, dim=-1).reshape(-1, 1) - q_taken2.reshape(-1, 1)) * mask.reshape(-1, 1)).sum() / mask.sum()
-            cql_loss = (cql_loss1 + cql_loss2) / 2
-            critic_loss = self.args.cql_alpha * cql_loss + td_loss
-        elif "cql" in self.args.name:
-            raise NotImplementedError("not implenmeneted so far")
-        else:   
-            critic_loss = td_loss
+        # if ("cql" in self.args.name or "omar" in self.args.name) and getattr(self.args, "cql_type", "vanilla")=="vanilla":
+        #     # get over actions
+        #     assert self.args.critic_rnn is False
+        #     consq1 = []
+        #     consq2 = []
+        #     for i in range(self.n_actions):
+        #         consq1_i, consq2_i = [], []
+        #         self.critic1.init_hidden(batch.batch_size)
+        #         self.critic2.init_hidden(batch.batch_size)
+        #         tmp_action = th.zeros(batch.batch_size, self.n_agents, self.n_actions).to(batch.device)
+        #         tmp_action[:, :, i] = 1
+        #         for t in range(batch.max_seq_length-1):
+        #             consq1_i.append(self.critic1(critic_inputs[:, t], tmp_action))
+        #             consq2_i.append(self.critic2(critic_inputs[:, t], tmp_action))
+        #         consq1_i = th.stack(consq1_i, dim=1) # (bs, T-1, n_agents, 1)
+        #         consq2_i = th.stack(consq2_i, dim=1) # (bs, T-1, n_agents, 1)
+        #         consq1.append(consq1_i)
+        #         consq2.append(consq2_i)
+        #     consq1 = th.cat(consq1, dim=-1)
+        #     consq2 = th.cat(consq2, dim=-1)
+        #     consq1[avail_actions == 0] = 0
+        #     consq2[avail_actions == 0] = 0
+        #     #q_values = th.min(consq1, consq2) # (bs, T-1, n_agents, n_actions)
+        #     top_acs = consq1.argmax(dim=-1) # (bs, T-1, n_agents)
+        #     cql_loss1 = ((th.logsumexp(consq1, dim=-1).reshape(-1, 1) - q_taken1.reshape(-1, 1)) * mask.reshape(-1, 1)).sum() / mask.sum()
+        #     cql_loss2 = ((th.logsumexp(consq2, dim=-1).reshape(-1, 1) - q_taken2.reshape(-1, 1)) * mask.reshape(-1, 1)).sum() / mask.sum()
+        #     cql_loss = (cql_loss1 + cql_loss2) / 2
+        #     critic_loss = self.args.cql_alpha * cql_loss + td_loss
+        # elif "cql" in self.args.name:
+        #     raise NotImplementedError("not implenmeneted so far")
+        # else:   
+        critic_loss = td_loss
         self.critic_optimiser.zero_grad()
         critic_loss.backward()
         critic_grad_norm = th.nn.utils.clip_grad_norm_(self.critic_params, self.args.grad_norm_clip)
@@ -304,7 +309,7 @@ class ITD3Learner:
         critic_log["q_taken1_mean"] = (q_taken1).sum().item() / mask_elems
         critic_log["q_taken2_mean"] = (q_taken2).sum().item() / mask_elems
         critic_log["target_mean"] = targets.sum().item() / mask_elems
-        return critic_log
+        return critic_log, top_acs
         
     def _build_critic_inputs(self, batch, t=None):
         bs = batch.batch_size

@@ -1,0 +1,3 @@
+# bash test/offline_train/train.sh 0 bc/qmix_cql/matd3_bc/... 3m/2s3z/... expert/medium/medium-replay/random 0/1/...
+export CUDA_VISIBLE_DEVICES=0
+python src/main.py --offline --config=qmix_cql --env-config=sc2_offline --map_name=3m  --offline_data_quality=expert --seed=0 --t_max=40000 --test_interval=250 --log_interval=250 --runner_log_interval=250 --learner_log_interval=250 --save_model_interval=10000

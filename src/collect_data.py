@@ -49,15 +49,28 @@ def run(_run, _config, _log):
 
     results_save_dir = args.results_save_dir
     
+    if args.use_wandb:
+        args.use_tensorboard = False
+    # assert args.use_tensorboard and args.use_wandb
+    
+    
     if args.use_tensorboard and not args.evaluate:
         # only log tensorboard when in training mode
-        tb_exp_direc = os.path.join(results_save_dir, 'tb_logs')
+        tb_exp_direc = os.path.join(results_save_dir, 'logs')
         logger.setup_tb(tb_exp_direc)
         
         # write config file
         config_str = json.dumps(vars(args), indent=4)
         with open(os.path.join(results_save_dir, "config.json"), "w") as f:
             f.write(config_str)
+    
+    if args.use_wandb and not args.evaluate:
+        wandb_run_name = args.results_save_dir.split('/')
+        wandb_run_name = "/".join(wandb_run_name[wandb_run_name.index("results")+1:])
+        wandb_exp_direc = os.path.join(results_save_dir, 'logs')
+        logger.setup_wandb(wandb_exp_direc, project=args.wandb_project_name, name=wandb_run_name,
+                           run_id=args.resume_id, config=args)
+        
 
     # set model save dir
     args.save_dir = os.path.join(results_save_dir, 'models')

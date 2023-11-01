@@ -6,11 +6,12 @@ epsilon_finish: .05
 epsilon_anneal_time: 500000
 mask_before_softmax: False
 
-runner: "episode"
+#runner: "episode"
+runner: "parallel"
 
 buffer_size: 32
-off_buffer_size: 70000 # size of the off-policy buffer default: 5000
-batch_size_run: 1 # 10
+# off_buffer_size : 70000 # size of the off-policy buffer default: 5000
+batch_size_run: 10 # 10
 batch_size: 16
 
 

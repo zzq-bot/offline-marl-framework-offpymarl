@@ -39,11 +39,7 @@ def run(_run, _config, _log):
     _log.info("\n\n" + experiment_params + "\n")
 
     results_save_dir = args.results_save_dir
-    
-    if args.use_tensorboard and not args.evaluate:
-        # only log tensorboard when in training mode
-        tb_exp_direc = os.path.join(results_save_dir, 'tb_logs')
-        logger.setup_tb(tb_exp_direc)
+
     
     # save executing code
     def _file_ignore(path, content):
@@ -55,13 +51,32 @@ def run(_run, _config, _log):
     shutil.copytree(dirname(abspath(__file__)), args.code_save_dir, ignore=_file_ignore)
 
     # set model save dir
-    args.save_dir = os.path.join(results_save_dir, 'models')
+    args.model_save_dir = os.path.join(results_save_dir, 'models')
 
+
+    if args.use_wandb:
+        args.use_tensorboard = False
+    # assert args.use_tensorboard and args.use_wandb
+    
+    
+    if args.use_tensorboard and not args.evaluate:
+        # only log tensorboard when in training mode
+        tb_exp_direc = os.path.join(results_save_dir, 'logs')
+        logger.setup_tb(tb_exp_direc)
+        
+    
+    if args.use_wandb and not args.evaluate:
+        wandb_run_name = args.results_save_dir.split('/')
+        wandb_run_name = "/".join(wandb_run_name[wandb_run_name.index("results")+1:])
+        wandb_exp_direc = os.path.join(results_save_dir, 'logs')
+        logger.setup_wandb(wandb_exp_direc, project=args.wandb_project_name, name=wandb_run_name,
+                           run_id=args.resume_id, config=args)
+        
     # write config file
     config_str = json.dumps(vars(args), indent=4)
     with open(os.path.join(results_save_dir, "config.json"), "w") as f:
         f.write(config_str)
-
+        
     # sacred is on by default
     logger.setup_sacred(_run)
 
@@ -212,7 +227,7 @@ def run_sequential(args, logger):
 
     # save the final model
     if main_args.save_model:
-        save_path = os.path.join(main_args.save_dir, str(main_args.t_max))
+        save_path = os.path.join(main_args.model_save_dir, str(main_args.t_max))
         os.makedirs(save_path, exist_ok=True)
         logger.console_logger.info("Saving final models to {}".format(save_path))
         learner.save_models(save_path)
@@ -279,7 +294,7 @@ def train_sequential(train_tasks, main_args, logger, learner, task2args, task2ru
             last_test_T = t_env
         
         if main_args.save_model and (t_env - model_save_time >= main_args.save_model_interval or model_save_time == 0):
-            save_path = os.path.join(main_args.save_dir, str(t_env))
+            save_path = os.path.join(main_args.model_save_dir, str(t_env))
             os.makedirs(save_path, exist_ok=True)
             logger.console_logger.info("Saving models to {}".format(save_path))
             learner.save_models(save_path)

@@ -8,6 +8,7 @@ class Logger:
         self.console_logger = console_logger
 
         self.use_tb = False
+        self.use_wandb = False
         self.use_sacred = False
         self.use_hdf = False
 
@@ -15,10 +16,33 @@ class Logger:
 
     def setup_tb(self, directory_name):
         # Import here so it doesn't have to be installed if you don't use it
-        from tensorboardX import SummaryWriter
         self.writer = SummaryWriter(logdir=directory_name)
         self.use_tb = True
 
+    def setup_wandb(self, directory_name, project=None, name=None, run_id=None, entity=None, config=None):
+        self.use_wandb = True
+    
+        import wandb
+        self.wandb_run = (
+            wandb.init(
+                project=project,
+                name=name,
+                id=run_id,
+                resume="allow",
+                entity=entity,
+                sync_tensorboard=True,
+                config=config,  # type: ignore
+            )
+            if not wandb.run
+            else wandb.run
+        )
+        self.wandb_run._label(repo="offpymarl")  # type: ignore
+        self.writer = SummaryWriter(logdir=directory_name)
+        self.writer.add_text(
+        "hyperparameters",
+        "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(config).items()])),
+    )
+        
     def setup_sacred(self, sacred_run_dict):
         self.sacred_info = sacred_run_dict.info
         self.use_sacred = True
@@ -26,7 +50,7 @@ class Logger:
     def log_stat(self, key, value, t, to_sacred=True):
         self.stats[key].append((t, value))
 
-        if self.use_tb:
+        if self.use_tb or self.use_wandb:
             self.writer.add_scalar(key, value, t)
 
         if self.use_sacred and to_sacred:

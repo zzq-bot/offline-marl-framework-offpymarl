@@ -4,7 +4,6 @@ from components.episode_buffer import EpisodeBatch
 from multiprocessing import Pipe, Process
 import numpy as np
 import torch as th
-import copy
 
 
 # Based (very) heavily on SubprocVecEnv from OpenAI Baselines
@@ -19,12 +18,12 @@ class ParallelRunner:
         # Make subprocesses for the envs
         self.parent_conns, self.worker_conns = zip(*[Pipe() for _ in range(self.batch_size)])
         env_fn = env_REGISTRY[self.args.env]
-        worker_id2env_args = {}
-        for worker_id in range(self.batch_size):
-            worker_id2env_args[worker_id] = copy.deepcopy(self.args.env_args)
-            worker_id2env_args[worker_id]["seed"] += worker_id
-        self.ps = [Process(target=env_worker, args=(worker_conn, CloudpickleWrapper(partial(env_fn, **worker_id2env_args[worker_id]))))
-                            for worker_id, worker_conn in enumerate(self.worker_conns)]
+        env_args = [self.args.env_args.copy() for _ in range(self.batch_size)]
+        for i in range(self.batch_size):
+            env_args[i]["seed"] += i
+
+        self.ps = [Process(target=env_worker, args=(worker_conn, CloudpickleWrapper(partial(env_fn, **env_arg))))
+                            for env_arg, worker_conn in zip(env_args, self.worker_conns)]
 
         for p in self.ps:
             p.daemon = True
@@ -57,7 +56,7 @@ class ParallelRunner:
         return self.env_info
 
     def save_replay(self):
-        pass
+        self.parent_conns[0].send(("save_replay", None))
 
     def close_env(self):
         for parent_conn in self.parent_conns:
@@ -87,7 +86,7 @@ class ParallelRunner:
         self.t = 0
         self.env_steps_this_run = 0
 
-    def run(self, test_mode=False, evaluate_mode=False):
+    def run(self, test_mode=False):
         self.reset()
 
         all_terminated = False
@@ -102,9 +101,7 @@ class ParallelRunner:
 
             # Pass the entire batch of experiences up till now to the agents
             # Receive the actions for each agent at this timestep in a batch for each un-terminated env
-            
             actions = self.mac.select_actions(self.batch, t_ep=self.t, t_env=self.t_env, bs=envs_not_terminated, test_mode=test_mode)
-            
             cpu_actions = actions.to("cpu").numpy()
 
             # Update the actions taken
@@ -120,6 +117,8 @@ class ParallelRunner:
                     if not terminated[idx]: # Only send the actions to the env if it hasn't terminated
                         parent_conn.send(("step", cpu_actions[action_idx]))
                     action_idx += 1 # actions is not a list over every env
+                    if idx == 0 and test_mode and self.args.render:
+                        parent_conn.send(("render", None))
 
             # Update envs_not_terminated
             envs_not_terminated = [b_idx for b_idx, termed in enumerate(terminated) if not termed]
@@ -185,7 +184,6 @@ class ParallelRunner:
             env_stat = parent_conn.recv()
             env_stats.append(env_stat)
 
-        
         cur_stats = self.test_stats if test_mode else self.train_stats
         cur_returns = self.test_returns if test_mode else self.train_returns
         log_prefix = "test_" if test_mode else ""
@@ -197,14 +195,9 @@ class ParallelRunner:
         cur_returns.extend(episode_returns)
 
         n_test_runs = max(1, self.args.test_nepisode // self.batch_size) * self.batch_size
-        if not evaluate_mode and test_mode and (len(self.test_returns) == n_test_runs):
+        if test_mode and (len(self.test_returns) == n_test_runs):
             self._log(cur_returns, cur_stats, log_prefix)
-        elif evaluate_mode and test_mode and len(self.test_returns) == n_test_runs:
-            print(f"========== test result ==========")
-            print(f"return_mean: {np.mean(self.test_returns)}")
-            print(f"return_std: {np.std(self.test_returns)}")
-            return self.test_stats, self.test_returns
-        elif not evaluate_mode and self.t_env - self.log_train_stats_t >= self.args.runner_log_interval:
+        elif self.t_env - self.log_train_stats_t >= self.args.runner_log_interval:
             self._log(cur_returns, cur_stats, log_prefix)
             if hasattr(self.mac.action_selector, "epsilon"):
                 self.logger.log_stat("epsilon", self.mac.action_selector.epsilon, self.t_env)
@@ -261,6 +254,10 @@ def env_worker(remote, env_fn):
             remote.send(env.get_env_info())
         elif cmd == "get_stats":
             remote.send(env.get_stats())
+        elif cmd == "render":
+            env.render()
+        elif cmd == "save_replay":
+            env.save_replay()
         else:
             raise NotImplementedError
 
@@ -277,4 +274,3 @@ class CloudpickleWrapper():
     def __setstate__(self, ob):
         import pickle
         self.x = pickle.loads(ob)
-

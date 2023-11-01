@@ -1,39 +1,40 @@
 # --- OMAR specific parameters ---
 
-runner: "episode"
+action_selector: "multinomial"
+epsilon_start: .5
+epsilon_finish: .05
+epsilon_anneal_time: 500000
+mask_before_softmax: True
 
-buffer_size: 50000
-# update the target network every {} episodes
-target_update_interval_or_tau: .005
+runner: "parallel"
 
-obs_agent_id: True
-obs_last_action: False
-obs_individual_obs: True
+batch_size_run: 8 # batch_size_run=4, buffer_size = 2500, batch_size=64  for 3s5z_vs_3s6z
+
+buffer_size: 32
+batch_size: 128
+
+# env_args:
+#   state_last_action: False # critic adds last action internally
+
+# update the target network every {} training steps
+target_update_interval: 200
 
 
-# use the madddpg_learner to train
-mac: "maddpg_mac"
-reg: 0.001
-batch_size: 32
-lr: 0.0003
-use_rnn: True
+lr: 0.001
+critic_lr: 0.001
+td_lambda: 0.6
+cql_alpha: 5.0
 
-standardise_returns: False
-standardise_rewards: True
 
-learner: "itd3_learner"
+omar_iters: 5
+omar_coe: 0.5
+omar_num_samples: 10
+# use qmix
+mixing_embed_dim: 32
+
+# use COMA
 agent_output_type: "pi_logits"
-hidden_dim: 128
-critic_type: "itd3_critic"
+learner: "omar_learner"
 
-optim_type: "adam"
-actor_freq: 2
-
-omar_iters: 3
-omar_num_samples: 10 
-init_omar_mu: 0
-init_omar_sigma: 2.0
-omar_coe: .5
 
 name: "omar"
-

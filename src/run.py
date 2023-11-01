@@ -41,14 +41,30 @@ def run(_run, _config, _log):
 
     results_save_dir = args.results_save_dir
 
+    if args.use_wandb:
+        args.use_tensorboard = False
+    # assert args.use_tensorboard and args.use_wandb
+    
+    
     if args.use_tensorboard and not args.evaluate:
         # only log tensorboard when in training mode
-        tb_exp_direc = os.path.join(results_save_dir, 'tb_logs')
+        tb_exp_direc = os.path.join(results_save_dir, 'logs')
         logger.setup_tb(tb_exp_direc)
-
-        config_str = json.dumps(vars(args), indent=4)
-        with open(os.path.join(results_save_dir, "config.json"), "w") as f:
-            f.write(config_str)
+        
+    
+    
+    if args.use_wandb and not args.evaluate:
+        wandb_run_name = args.results_save_dir.split('/')
+        wandb_run_name = "/".join(wandb_run_name[wandb_run_name.index("results")+1:])
+        wandb_exp_direc = os.path.join(results_save_dir, 'logs')
+        logger.setup_wandb(wandb_exp_direc, project=args.wandb_project_name, name=wandb_run_name,
+                           run_id=args.resume_id, config=args)
+    # write config file
+    config_str = json.dumps(vars(args), indent=4)
+    with open(os.path.join(results_save_dir, "config.json"), "w") as f:
+        f.write(config_str)
+    # set model save dir
+    args.model_save_dir = os.path.join(results_save_dir, 'models')
 
     
     # sacred is on by default
@@ -206,24 +222,31 @@ def run_sequential(args, logger):
                 runner.run(test_mode=True)
 
         if args.save_model and (runner.t_env - model_save_time >= args.save_model_interval or model_save_time == 0):
-            model_save_time = runner.t_env
-            local_results_path = os.path.join(dirname(dirname(abspath(__file__))), "results") # default.yaml -> results by default
             
-            match args.env:
-                case "sc2":
-                    save_path = os.path.join(local_results_path, args.env, args.env_args["map_name"], args.name, "models", args.unique_token, str(runner.t_env))
-                case "mpe":
-                    save_path = os.path.join(local_results_path, args.env, args.env_args["scenario_name"], args.name, "models", args.unique_token, str(runner.t_env))
-                case _:
-                    save_path = os.path.join(local_results_path, args.env, args.name, "models", args.unique_token, str(runner.t_env))
-            
-            # results/sc2/2s3z/qmix/models/unqiue_token/t_env
+            save_path = os.path.join(args.model_save_dir, str(runner.t_env))
             os.makedirs(save_path, exist_ok=True)
             logger.console_logger.info("Saving models to {}".format(save_path))
-
-            # learner should handle saving/loading -- delegate actor save/load to mac,
-            # use appropriate filenames to do critics, optimizer states
             learner.save_models(save_path)
+            model_save_time = runner.t_env
+            
+            # model_save_time = runner.t_env
+            # local_results_path = os.path.join(dirname(dirname(abspath(__file__))), "results") # default.yaml -> results by default
+            
+            # match args.env:
+            #     case "sc2":
+            #         save_path = os.path.join(local_results_path, args.env, args.env_args["map_name"], args.name, "models", args.unique_token, str(runner.t_env))
+            #     case "mpe":
+            #         save_path = os.path.join(local_results_path, args.env, args.env_args["scenario_name"], args.name, "models", args.unique_token, str(runner.t_env))
+            #     case _:
+            #         save_path = os.path.join(local_results_path, args.env, args.name, "models", args.unique_token, str(runner.t_env))
+            
+            # # results/sc2/2s3z/qmix/models/unqiue_token/t_env
+            # os.makedirs(save_path, exist_ok=True)
+            # logger.console_logger.info("Saving models to {}".format(save_path))
+
+            # # learner should handle saving/loading -- delegate actor save/load to mac,
+            # # use appropriate filenames to do critics, optimizer states
+            # learner.save_models(save_path)
 
         episode += args.batch_size_run
 

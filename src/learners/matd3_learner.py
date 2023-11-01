@@ -48,10 +48,10 @@ class MATD3Learner:
             self.log_actor["bc_loss"] = []
             self.log_actor["td3_loss"] = []
 
-        if "cql" in self.args.name:
-            self.cql_alpha = self.args.cql_alpha
-            self.cql_temperature = self.args.cql_temperature
-            self.num_repeats = self.args.num_repeats
+        # if "cql" in self.args.name:
+        #     self.cql_alpha = self.args.cql_alpha
+        #     self.cql_temperature = self.args.cql_temperature
+        #     self.num_repeats = self.args.num_repeats
 
         device = "cuda" if args.use_cuda else "cpu"
         if self.args.standardise_returns:
@@ -209,71 +209,71 @@ class MATD3Learner:
         td_loss = 0.5 * (masked_td_error1 ** 2).mean() + 0.5 * (masked_td_error2 ** 2).mean()
 
 
-        if "cql" in self.args.name:
-            raise NotImplementedError("bad performance, to be improved")
-            # critic_inputs.shape = (bs, T-1, n_agents, x)
-            Tm1 = critic_inputs.shape[1]-1
-            formatted_critic_inputs = critic_inputs.unsqueeze(3).repeat(1, 1, 1, self.num_repeats, 1)
+        # if "cql" in self.args.name:
+        #     raise NotImplementedError("bad performance, to be improved")
+        #     # critic_inputs.shape = (bs, T-1, n_agents, x)
+        #     Tm1 = critic_inputs.shape[1]-1
+        #     formatted_critic_inputs = critic_inputs.unsqueeze(3).repeat(1, 1, 1, self.num_repeats, 1)
             
-            #### q_rand (bs*(T-1)*n_agents, num_repeats 1)
-            random_actions = F.one_hot(th.randint(low=0, high=self.n_actions, size=(batch_size, Tm1, self.num_repeats, self.n_agents), device=batch.device))
-            random_actions = random_actions.view(batch_size, Tm1, self.num_repeats, 1, self.n_agents*self.n_actions).expand(-1, -1, -1, self.n_agents, -1)
-            random_actions = random_actions.transpose(2, 3)
-            #random_log_prob = np.log(1 / self.n_actions * self.n_actions) # = 0
-            random_Q1 = self.critic1(formatted_critic_inputs[:, :-1], random_actions) #- random_log_prob
-            random_Q2 = self.critic2(formatted_critic_inputs[:, :-1], random_actions) #- random_log_prob
-            random_Q1 = random_Q1.reshape(-1, self.num_repeats, 1)
-            random_Q2 = random_Q2.reshape(-1, self.num_repeats, 1)
+        #     #### q_rand (bs*(T-1)*n_agents, num_repeats 1)
+        #     random_actions = F.one_hot(th.randint(low=0, high=self.n_actions, size=(batch_size, Tm1, self.num_repeats, self.n_agents), device=batch.device))
+        #     random_actions = random_actions.view(batch_size, Tm1, self.num_repeats, 1, self.n_agents*self.n_actions).expand(-1, -1, -1, self.n_agents, -1)
+        #     random_actions = random_actions.transpose(2, 3)
+        #     #random_log_prob = np.log(1 / self.n_actions * self.n_actions) # = 0
+        #     random_Q1 = self.critic1(formatted_critic_inputs[:, :-1], random_actions) #- random_log_prob
+        #     random_Q2 = self.critic2(formatted_critic_inputs[:, :-1], random_actions) #- random_log_prob
+        #     random_Q1 = random_Q1.reshape(-1, self.num_repeats, 1)
+        #     random_Q2 = random_Q2.reshape(-1, self.num_repeats, 1)
                 
             
-            #### q_cur
+        #     #### q_cur
 
-            cur_actions, cur_log_probs = [], []
-            with th.no_grad():
-                self.mac.init_hidden(batch_size, self.num_repeats)
-                for t in range(batch.max_seq_length-1):
-                    cur_action, cur_log_prob = self.mac.get_repeat_actions(batch, t, self.num_repeats)
-                    cur_actions.append(cur_action)
-                    cur_log_probs.append(cur_log_prob)
-                cur_actions = th.stack(cur_actions, dim=1) # (bs, T-1, n_agents, num_repeats, n_actions)
-                cur_log_probs = th.stack(cur_log_probs, dim=1).unsqueeze(-1) # (bs, T-1, n_agents, num_repeats, 1)
+        #     cur_actions, cur_log_probs = [], []
+        #     with th.no_grad():
+        #         self.mac.init_hidden(batch_size, self.num_repeats)
+        #         for t in range(batch.max_seq_length-1):
+        #             cur_action, cur_log_prob = self.mac.get_repeat_actions(batch, t, self.num_repeats)
+        #             cur_actions.append(cur_action)
+        #             cur_log_probs.append(cur_log_prob)
+        #         cur_actions = th.stack(cur_actions, dim=1) # (bs, T-1, n_agents, num_repeats, n_actions)
+        #         cur_log_probs = th.stack(cur_log_probs, dim=1).unsqueeze(-1) # (bs, T-1, n_agents, num_repeats, 1)
 
-            cur_actions = cur_actions.transpose(2, 3).contiguous().view(batch_size, Tm1, self.num_repeats, 1, self.n_agents*self.n_actions)
-            cur_actions = cur_actions.expand(-1, -1, -1, self.n_agents, -1).transpose(2, 3)
-            cur_Q1 = self.critic1(formatted_critic_inputs[:, :-1], cur_actions.detach())# - cur_log_probs.detach()
-            cur_Q2 = self.critic2(formatted_critic_inputs[:, :-1], cur_actions.detach())# - cur_log_probs.detach()
-            cur_Q1 = cur_Q1.reshape(-1, self.num_repeats, 1)
-            cur_Q2 = cur_Q2.reshape(-1, self.num_repeats, 1)
+        #     cur_actions = cur_actions.transpose(2, 3).contiguous().view(batch_size, Tm1, self.num_repeats, 1, self.n_agents*self.n_actions)
+        #     cur_actions = cur_actions.expand(-1, -1, -1, self.n_agents, -1).transpose(2, 3)
+        #     cur_Q1 = self.critic1(formatted_critic_inputs[:, :-1], cur_actions.detach())# - cur_log_probs.detach()
+        #     cur_Q2 = self.critic2(formatted_critic_inputs[:, :-1], cur_actions.detach())# - cur_log_probs.detach()
+        #     cur_Q1 = cur_Q1.reshape(-1, self.num_repeats, 1)
+        #     cur_Q2 = cur_Q2.reshape(-1, self.num_repeats, 1)
             
-            #### q_nxt
-            nxt_actions, nxt_log_probs = [], []
-            with th.no_grad():
-                self.mac.init_hidden(batch_size, self.num_repeats)
-                for t in range(batch.max_seq_length):
-                    nxt_action, nxt_log_prob = self.mac.get_repeat_actions(batch, t, self.num_repeats)
-                    nxt_actions.append(nxt_action)
-                    nxt_log_probs.append(nxt_log_prob)
-                nxt_actions = th.stack(nxt_actions, dim=1)[:, 1:] # (bs, T-1, n_agents, num_repeats, n_actions)
-                nxt_log_probs = th.stack(nxt_log_probs, dim=1).unsqueeze(-1)[:, 1:] # (bs, T-1, n_agents, num_repeats, 1)
-            nxt_actions = nxt_actions.transpose(2, 3).contiguous().view(batch_size, Tm1, self.num_repeats, 1, self.n_agents*self.n_actions)
-            nxt_actions = nxt_actions.expand(-1, -1, -1, self.n_agents, -1).transpose(2, 3)
-            nxt_Q1 = self.critic1(formatted_critic_inputs[:, 1:], nxt_actions.detach())# - nxt_log_probs.detach()
-            nxt_Q2 = self.critic2(formatted_critic_inputs[:, 1:], nxt_actions.detach())# - nxt_log_probs.detach()
-            nxt_Q1 = nxt_Q1.reshape(-1, self.num_repeats, 1)
-            nxt_Q2 = nxt_Q2.reshape(-1, self.num_repeats, 1)
+        #     #### q_nxt
+        #     nxt_actions, nxt_log_probs = [], []
+        #     with th.no_grad():
+        #         self.mac.init_hidden(batch_size, self.num_repeats)
+        #         for t in range(batch.max_seq_length):
+        #             nxt_action, nxt_log_prob = self.mac.get_repeat_actions(batch, t, self.num_repeats)
+        #             nxt_actions.append(nxt_action)
+        #             nxt_log_probs.append(nxt_log_prob)
+        #         nxt_actions = th.stack(nxt_actions, dim=1)[:, 1:] # (bs, T-1, n_agents, num_repeats, n_actions)
+        #         nxt_log_probs = th.stack(nxt_log_probs, dim=1).unsqueeze(-1)[:, 1:] # (bs, T-1, n_agents, num_repeats, 1)
+        #     nxt_actions = nxt_actions.transpose(2, 3).contiguous().view(batch_size, Tm1, self.num_repeats, 1, self.n_agents*self.n_actions)
+        #     nxt_actions = nxt_actions.expand(-1, -1, -1, self.n_agents, -1).transpose(2, 3)
+        #     nxt_Q1 = self.critic1(formatted_critic_inputs[:, 1:], nxt_actions.detach())# - nxt_log_probs.detach()
+        #     nxt_Q2 = self.critic2(formatted_critic_inputs[:, 1:], nxt_actions.detach())# - nxt_log_probs.detach()
+        #     nxt_Q1 = nxt_Q1.reshape(-1, self.num_repeats, 1)
+        #     nxt_Q2 = nxt_Q2.reshape(-1, self.num_repeats, 1)
             
-            cat_Q1 = th.cat([random_Q1, cur_Q1, nxt_Q1], dim=1)
-            cat_Q2 = th.cat([random_Q2, cur_Q2, nxt_Q2], dim=1)
-            cat_q1_vals = th.logsumexp(cat_Q1 / self.cql_temperature, dim=1) * self.cql_temperature
-            cat_q2_vals = th.logsumexp(cat_Q2 / self.cql_temperature, dim=1) * self.cql_temperature
-            masked_cql_loss1 = ((cat_q1_vals-q_taken1.reshape(-1, 1)) * mask.reshape(-1, 1)).sum() / mask.sum()
-            masked_cql_loss2 = ((cat_q2_vals-q_taken2.reshape(-1, 1)) * mask.reshape(-1, 1)).sum() / mask.sum()
+        #     cat_Q1 = th.cat([random_Q1, cur_Q1, nxt_Q1], dim=1)
+        #     cat_Q2 = th.cat([random_Q2, cur_Q2, nxt_Q2], dim=1)
+        #     cat_q1_vals = th.logsumexp(cat_Q1 / self.cql_temperature, dim=1) * self.cql_temperature
+        #     cat_q2_vals = th.logsumexp(cat_Q2 / self.cql_temperature, dim=1) * self.cql_temperature
+        #     masked_cql_loss1 = ((cat_q1_vals-q_taken1.reshape(-1, 1)) * mask.reshape(-1, 1)).sum() / mask.sum()
+        #     masked_cql_loss2 = ((cat_q2_vals-q_taken2.reshape(-1, 1)) * mask.reshape(-1, 1)).sum() / mask.sum()
 
-            cql_loss = (masked_cql_loss1 + masked_cql_loss2) / 2
+        #     cql_loss = (masked_cql_loss1 + masked_cql_loss2) / 2
 
-            critic_loss = td_loss + self.cql_alpha * cql_loss
-        else:
-            critic_loss = td_loss
+        #     critic_loss = td_loss + self.cql_alpha * cql_loss
+        # else:
+        critic_loss = td_loss
 
         self.critic_optimiser.zero_grad()
         critic_loss.backward()
@@ -283,10 +283,10 @@ class MATD3Learner:
         mask_elems = mask.sum().item()
         critic_log["critic_loss"] = critic_loss.item()
         critic_log["critic_grad_norm"] = critic_grad_norm.item()
-        if "cql" in self.args.name:
-            raise NotImplementedError()
-            critic_log["td_loss"] = td_loss.item()
-            critic_log["cql_loss"] = cql_loss.item()
+        # if "cql" in self.args.name:
+        #     raise NotImplementedError()
+        #     critic_log["td_loss"] = td_loss.item()
+        #     critic_log["cql_loss"] = cql_loss.item()
 
         critic_log["td_error1_abs"] = masked_td_error1.abs().sum().item() / mask_elems
         critic_log["td_error2_abs"] = masked_td_error2.abs().sum().item() / mask_elems
