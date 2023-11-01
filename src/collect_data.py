@@ -59,10 +59,7 @@ def run(_run, _config, _log):
         tb_exp_direc = os.path.join(results_save_dir, 'logs')
         logger.setup_tb(tb_exp_direc)
         
-        # write config file
-        config_str = json.dumps(vars(args), indent=4)
-        with open(os.path.join(results_save_dir, "config.json"), "w") as f:
-            f.write(config_str)
+    
     
     if args.use_wandb and not args.evaluate:
         wandb_run_name = args.results_save_dir.split('/')
@@ -71,9 +68,12 @@ def run(_run, _config, _log):
         logger.setup_wandb(wandb_exp_direc, project=args.wandb_project_name, name=wandb_run_name,
                            run_id=args.resume_id, config=args)
         
-
+    # write config file
+    config_str = json.dumps(vars(args), indent=4)
+    with open(os.path.join(results_save_dir, "config.json"), "w") as f:
+        f.write(config_str)
     # set model save dir
-    args.save_dir = os.path.join(results_save_dir, 'models')
+    args.model_save_dir = os.path.join(results_save_dir, 'models')
 
     # sacred is on by default
     logger.setup_sacred(_run)
@@ -283,7 +283,7 @@ def run_sequential(args, logger):
 
         if args.save_model and (runner.t_env - model_save_time >= args.save_model_interval or model_save_time == 0):
             model_save_time = runner.t_env
-            save_path = os.path.join(args.save_dir, str(runner.t_env))
+            save_path = os.path.join(args.model_save_dir, str(runner.t_env))
             os.makedirs(save_path, exist_ok=True)
             logger.console_logger.info("Saving models to {}".format(save_path))
 
@@ -309,7 +309,7 @@ def run_sequential(args, logger):
     logger.print_recent_stats()
     
     if args.save_model:
-        save_path = os.path.join(args.save_dir, str(runner.t_env))
+        save_path = os.path.join(args.model_save_dir, str(runner.t_env))
         os.makedirs(save_path, exist_ok=True)
         logger.console_logger.info("Saving models to {}".format(save_path))
         learner.save_models(save_path)

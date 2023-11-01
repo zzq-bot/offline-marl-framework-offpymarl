@@ -39,9 +39,9 @@ class Logger:
         self.wandb_run._label(repo="offpymarl")  # type: ignore
         self.writer = SummaryWriter(logdir=directory_name)
         self.writer.add_text(
-        "hyperparameters",
-        "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(config).items()])),
-    )
+            "hyperparameters",
+            "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(config).items()])),
+        )
         
     def setup_sacred(self, sacred_run_dict):
         self.sacred_info = sacred_run_dict.info
