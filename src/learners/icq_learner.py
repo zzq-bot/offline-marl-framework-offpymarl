@@ -75,8 +75,7 @@ class ICQLearner:
         mask = mask.repeat(1, 1, self.n_agents).view(bs, -1, self.n_agents)
 
         critic_inputs = self._build_critic_inputs(batch)
-        q_vals = self.critic(critic_inputs).detach()[:, :-1]
-        # (bs, seq_len-1, n_agents, n_actions)
+        q_vals = self.critic(critic_inputs).detach()[:, :-1]# (bs, seq_len-1, n_agents, n_actions)
 
         mac_out = []
         self.mac.init_hidden(bs)

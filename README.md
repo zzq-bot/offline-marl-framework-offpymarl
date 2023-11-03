@@ -9,6 +9,7 @@ OffPyMARL provides unofficial and benchmarked PyTorch implementations for select
 - ITD3+BC
 - MATD3+BC
 - MAICQ
+- OMAR (Centralized)
 
 we also implement selected Multi-Task versions to tackle with the population-invariante issue for BC, QMIX+CQL and MATD+BC, Multi-Task versions for other algorithms are under developing.
 

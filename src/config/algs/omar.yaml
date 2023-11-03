@@ -17,7 +17,7 @@ batch_size: 128
 #   state_last_action: False # critic adds last action internally
 
 # update the target network every {} training steps
-target_update_interval: 200
+target_update_interval_or_tau: 200
 
 
 lr: 0.001
