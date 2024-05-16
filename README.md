@@ -48,7 +48,7 @@ see test/mto for more information.
 
 ## Citing OffPyMARL
 
-If you use OfflineRL-Lib in your work, please use the following bibtex
+If you use OffPyMARL your work, please use the following bibtex
 
 ```tex
 @misc{OffPyMARL,
