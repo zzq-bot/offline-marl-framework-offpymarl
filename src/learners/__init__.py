@@ -23,11 +23,3 @@ REGISTRY["icq_learner"] = ICQLearner
 REGISTRY["itd3_learner"] = ITD3Learner
 REGISTRY["omar_learner"] = OMARLearner
 REGISTRY["cq_learner"] = CQLearner
-
-from .multi_task.mt_q_learner import MTQLearner
-from .multi_task.mt_matd3_learner import MTMATD3Learner
-from .multi_task.mt_bc_learner import MTBCLearner
-
-REGISTRY["mt_q_learner"] = MTQLearner
-REGISTRY["mt_matd3_learner"] = MTMATD3Learner
-REGISTRY["mt_bc_learner"] = MTBCLearner

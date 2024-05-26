@@ -16,7 +16,7 @@ import yaml
 from run import run as run
 from collect_data import run as collect_data
 from offline_run import run as offline_run
-from multi_task_offline_run import run as mto_run
+
 
 SETTINGS['CAPTURE_MODE'] = "fd" # set to "no" if you want to see stdout/stderr in console
 logger = get_logger()
@@ -44,8 +44,6 @@ def my_main(_run, _config, _log):
             collect_data(_run, config, _log)
         case "offline":
             offline_run(_run, config, _log)
-        case "mto":
-            mto_run(_run, config, _log)
         case _: 
             raise NotImplementedError("hhhh")
 
@@ -57,23 +55,6 @@ def _get_config(params, arg_name, subfolder):
             config_name = _v.split("=")[1]
             del params[_i]
             break
-
-    if subfolder == "tasks":
-        customized_quality = None
-        for _i, _v in enumerate(params):
-            if _v.split('=')[0] == "--customized_quality":
-                customized_quality = _v.split('=')[1]
-                del params[_i]
-                break
-
-    # if single task
-    if config_name is not None and subfolder == "tasks" and "single_task" in config_name:
-        specific_task = None
-        for _i, _v in enumerate(params):
-            if _v.split('=')[0] == "--st": # abbr . single task
-                specific_task = _v.split('=')[1]
-                del params[_i]
-                break
     
     if config_name is not None:
         with open(os.path.join(os.path.dirname(__file__), "config", subfolder, "{}.yaml".format(config_name)), "r") as f:
@@ -82,22 +63,6 @@ def _get_config(params, arg_name, subfolder):
             except yaml.YAMLError as exc:
                 assert False, "{}.yaml error: {}".format(config_name, exc)
 
-        if subfolder == "tasks" and "single_task" in config_name and specific_task is not None:
-            # update config_dict, mainly quality and map_name
-            original_task = config_dict["train_tasks"][0]
-            config_dict["train_tasks"][0] = specific_task
-            config_dict["test_tasks"][0] = specific_task
-            #quality = config_dict["train_tasks_data_quality"][original_task]
-            config_dict["train_tasks_data_quality"].clear()
-            config_dict["train_tasks_data_quality"][specific_task] = customized_quality
-            ori_bottom_data_path = config_dict["tasks_offline_bottom_data_paths"][original_task]
-            config_dict["tasks_offline_bottom_data_paths"].clear()
-            config_dict["tasks_offline_bottom_data_paths"][specific_task] = ori_bottom_data_path
-
-        elif subfolder == "tasks" and customized_quality is not None:
-            for k, v in config_dict["train_tasks_data_quality"].items():
-                config_dict["train_tasks_data_quality"][k] = customized_quality
-            config_dict["customized_quality"] = customized_quality
         return config_dict
     else: # e.g. collect_data but not assign task config
         return {}
@@ -168,9 +133,7 @@ if __name__ == '__main__':
     # get env type and load env config
     env_config = _get_config(params, "--env-config", "envs")
     config_dict = recursive_dict_update(config_dict, env_config)
-    
-    task_config = _get_config(params, "--task-config", "tasks")
-    config_dict = recursive_dict_update(config_dict, task_config)
+
     
     config_dict = recursive_dict_update(config_dict, _get_argv_config(params))
     
@@ -230,16 +193,6 @@ if __name__ == '__main__':
                 results_path, "collect", Y_M_D,
                 env + os.sep + map_name,
                 config_dict['offline_data_quality'], aux_dir,
-                config_dict['name'] + config_dict['remark'],
-                unique_token
-            )
-        case "mto":
-            if config_dict['evaluate']:
-                results_path = os.path.join(results_path, 'evaluate')
-                                        
-            results_save_dir = os.path.join(
-                results_path, "mto", Y_M_D, env, config_dict['task'],
-                '+'.join([f'{k}-{v}' for k, v in config_dict['train_tasks_data_quality'].items()]),
                 config_dict['name'] + config_dict['remark'],
                 unique_token
             )

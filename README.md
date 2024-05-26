@@ -11,7 +11,7 @@ OffPyMARL provides unofficial and benchmarked PyTorch implementations for select
 - MAICQ
 - OMAR (Centralized)
 
-we also implement selected Multi-Task versions to tackle with the population-invariante issue for BC, QMIX+CQL and MATD+BC, Multi-Task versions for other algorithms are under developing.
+we also implement selected [Multi-Task versions](https://github.com/zzq-bot/mt_offpymarl) to tackle with the population-invariante issue for BC, QMIX+CQL and MATD+BC, Multi-Task versions for other algorithms are under developing.
 
 ## Installation
 
@@ -40,11 +40,6 @@ python src/main.py --offline --config=<alg_name> --env-config=sc2_offline --map_
 ```
 see test/offline_train for more information.
 
-## MultiTask Offline Training
-```bash
-python src/main.py --mto --config=<alg_name> --env-config=sc2_offline --task-config=<task_name> --customized_quality=<data_quality> --seed=<seed> --t_max=40000 --test_interval=250 --log_interval=250 --runner_log_interval=250 --learner_log_interval=250 --save_model_interval=10000
-```
-see test/mto for more information.
 
 ## Citing OffPyMARL
 

@@ -59,3 +59,4 @@ standardise_rewards: False
 
 
 offline_batch_size: 32
+offline_data_quality: "expert"
