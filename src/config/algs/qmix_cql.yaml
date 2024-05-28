@@ -17,13 +17,19 @@ target_update_interval_or_tau: 0.01
 agent_output_type: "q"
 learner: "q_learner"
 double_q: True
-mixer: "qmix"
+# mixer: "qmix"
+mixer: "nmix"
 mixing_embed_dim: 32
 hypernet_layers: 2
 hypernet_embed: 64
 
+cal_target: "td_lambda"
+td_lambda: 0.6 # 0.3 for 6h_vs_8z else 0.6
+
 cql_alpha: 1. # largely depend on the quality of dataset
-cql_type: "base"
+cql_type: "individual"
+
+raw_sample_actions: 32
 
 name: "qmix_cql"
 

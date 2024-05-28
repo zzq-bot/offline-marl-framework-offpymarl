@@ -1,0 +1,48 @@
+# --- CFCQL specific parameters ---
+
+# use epsilon greedy action selector
+action_selector: "epsilon_greedy"
+epsilon_start: 1.0
+epsilon_finish: 0.05
+epsilon_anneal_time: 100000 # 500000 for 6h_vs_8z else 100000
+
+# runner: "episode"
+runner: "episode"
+
+buffer_size: 5000
+
+
+# update the target network every {} episodes
+target_update_interval_or_tau: 200
+
+# use the Q_Learner to train
+agent_output_type: q
+
+behaviour_log_interval: 2000
+behaviour_model_path: ""
+behaviour_t_max: 20000
+
+learner: "cfcq_learner"
+mixer: "nmix"
+mixing_embed_dim: 32
+hypernet_embed: 64
+lr: 0.001 # Learning rate for agents
+td_lambda: 0.6 # 0.3 for 6h_vs_8z else 0.6
+train_behaviour: True
+
+
+
+global_cql_alpha: 50.0
+# counterfactual: 1
+raw_cql: False
+sparse_lambda: False
+softmax_temp: 5
+training_episodes: 5000
+raw_sample_actions: 100
+
+
+cal_target: "td_lambda"
+cal_dcql: False
+behaviour_mini_epoch: 1
+
+name: "cfcql"

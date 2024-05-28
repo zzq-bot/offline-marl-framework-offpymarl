@@ -3,15 +3,14 @@
 
 OffPyMARL provides unofficial and benchmarked PyTorch implementations for selected Offline MARL algorithms, including:
 
-- BC
-- VDN+CQL
-- QMIX+CQL
-- ITD3+BC
-- MATD3+BC
-- MAICQ
-- OMAR (Centralized)
+- [BC](https://arxiv.org/abs/1805.01954)
+- [VDN/QMIX+CQL](https://arxiv.org/abs/2006.04779) (We provide three types of calculating coservatism term, "individual" and "global_simplified" are recommended) 
+- [ITD3/MATD3+BC](https://arxiv.org/abs/2106.06860)
+- [MAICQ](https://arxiv.org/abs/2106.03400)
+- [OMAR](https://arxiv.org/abs/2111.11188) (Centralized Critic)
+- [CFCQL](https://arxiv.org/abs/2309.12696)
 
-we also implement selected [Multi-Task versions](https://github.com/zzq-bot/mt_offpymarl) to tackle with the population-invariante issue for BC, QMIX+CQL and MATD+BC, Multi-Task versions for other algorithms are under developing.
+we also implement selected [Multi-Task versions](https://github.com/zzq-bot/mt_offpymarl) to tackle with the population-invariante issue for BC, QMIX+CQL and MATD+BC.
 
 ## Installation
 
@@ -30,9 +29,13 @@ num_episodes_collected=<num_episodes_per_collection> stop_winrate=<stop_winrate>
 ```
 quality is optinal in ['random', 'medium', 'expert', 'full'].
 
-if assign save_replay_buffer, will generate 'medium_replay', 'expert_replay' offline data with adequate offline_data_quality param.
+if save_replay_buffer is set, it will generate 'medium_replay', 'expert_replay' offline data with adequate offline_data_quality param.
 
-see debug/collect_data/evaluate.sh if you want to use trained checkpoint to collect data.
+We also provide the data link in [Google Drive URL](https://drive.google.com/drive/folders/1FzSetZJ89Vq99o8LQHXiIxU9_tS70laE?usp=sharing) for quick start.
+After putting the full dataset in dataset folder, you can run experiments in our pre-defined task sets.
+
+
+
 
 ## Offline Training
 ```bash

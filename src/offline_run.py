@@ -20,13 +20,15 @@ from components.transforms import OneHot
 def run(_run, _config, _log):
 
     # check args sanity
+    print(_config["use_cuda"])
     _config = args_sanity_check(_config, _log)
     
     args = SN(**_config)
     args.device = "cuda" if args.use_cuda else "cpu"
+    
 
     logger = Logger(_log)
-    print(args.offline_data_quality)
+
     _log.info("Experiment Parameters:")
     experiment_params = pprint.pformat(_config,
                                        indent=4,
@@ -132,7 +134,9 @@ def run_sequential(args, logger):
     learner = le_REGISTRY[args.learner](mac, buffer.scheme, logger, args)
 
     if args.use_cuda:
+        print("use cuda")
         learner.cuda()
+
 
     if args.checkpoint_path != "":
         timesteps = []
@@ -168,17 +172,21 @@ def run_sequential(args, logger):
     # Create Offline Data
     match args.env:
         case "sc2":
-            map_name = args.env_args["map_name"]
+            args.map_name = args.env_args["map_name"]
         case "gymma":
-            env_name, map_name = args.env_args['key'].split(':')
+            env_name, args.map_name = args.env_args['key'].split(':')
             args.env = env_name
         case _:
                 raise NotImplementedError("Do not support such envs: {}".format(args.env))
         
-    offline_buffer = OfflineBuffer(args, map_name, args.offline_data_quality,
+    offline_buffer = OfflineBuffer(args, args.map_name, args.offline_data_quality,
                                    args.offline_bottom_data_path, args.offline_max_buffer_size, 
                                    shuffle=args.offline_data_shuffle) # device defauly cpu
 
+    if getattr(args, "train_behaviour", False):
+        train_behaviour_sequential(args, logger, learner, runner, offline_buffer)
+    
+    
     logger.console_logger.info("Beginning  offline training with {} iterations".format(args.t_max))
     train_sequential(args, logger, learner, runner, offline_buffer)
 
@@ -255,8 +263,40 @@ def train_sequential(args, logger, learner, runner, offline_buffer):
     logger.console_logger.info("Finish training sequential")
             
 
-
-
+def train_behaviour_sequential(args, logger, learner, runner, offline_buffer):
+    if args.behaviour_model_path == "":
+        default_behaviour_model_path = os.path.join("dataset", args.env, args.map_name, args.offline_data_quality, "bc_model")
+    else:
+        default_behaviour_model_path = args.behaviour_model_path
+    
+    if os.path.exists(default_behaviour_model_path):
+        logger.console_logger.info("Loading behaviour model from {}".format(default_behaviour_model_path))
+        learner.load_behaviour_model(default_behaviour_model_path)
+        return
+    else:
+        logger.console_logger.info("Beginning training behaviour proxy policy as CFCQL does with {} steps".format(args.behaviour_t_max))
+        training_steps = 0
+        batch_size_train = args.offline_batch_size
+        episode = 0
+        last_log_T = - args.log_interval - 1
+        while training_steps <= args.behaviour_t_max:
+            episode_sample = offline_buffer.sample(batch_size_train)
+            if episode_sample.device != args.device:
+                episode_sample.to(args.device)
+            learner.train_behaviour(episode_sample)
+            training_steps += 1 # CFCQL calculates "filled" but I directly + 1
+            
+            episode += batch_size_train
+            if (training_steps - last_log_T) >= args.log_interval:
+                last_log_T = training_steps
+                logger.log_stat("episode", episode, training_steps)
+                logger.print_recent_stats()
+            
+        os.makedirs(default_behaviour_model_path, exist_ok=True)
+        logger.console_logger.info("Saving behaviour models to {}".format(default_behaviour_model_path))
+        learner.save_behaviour_model(default_behaviour_model_path)
+        logger.console_logger.info("Finish training behaviour proxy policy")
+            
 def args_sanity_check(config, _log):
 
     # set CUDA flags

@@ -13,9 +13,9 @@ snakeviz==2.1.1
 tensorboard==2.12.0
 tensorboard-logger==0.1.0
 tensorboardx==2.6
-torch==1.13.1
-torchaudio==0.13.1
-torchvision==0.14.1
+torch==2.1.1
+torchaudio==2.1.1
+torchvision==0.16.1
 tqdm==4.65.0
 gym==0.21.0
 wandb==0.13.11

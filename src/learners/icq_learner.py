@@ -191,7 +191,8 @@ class ICQLearner:
             critic_log[k] = np.mean(critic_log[k])
         return critic_log
         
-        # not stable
+        # implementation of backward together
+        # quicker but performance can not match compared with backward per timestep
         q_vals = self.critic(critic_inputs[:, :max_t-1])
         chosen_action_q_vals = th.gather(q_vals, 3, index=actions[:, :max_t-1])
         chosen_action_q_vals = self.mixer.icq_forward(chosen_action_q_vals, states[:, :max_t-1]) 

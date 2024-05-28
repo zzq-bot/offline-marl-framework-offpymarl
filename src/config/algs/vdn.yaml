@@ -19,4 +19,7 @@ learner: "q_learner"
 double_q: True
 mixer: "vdn"
 
+cal_target: "td_lambda"
+td_lambda: 0.6 # 0.3 for 6h_vs_8z else 0.6
+
 name: "vdn"
