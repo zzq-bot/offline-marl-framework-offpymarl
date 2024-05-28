@@ -9,6 +9,7 @@ OffPyMARL provides unofficial and benchmarked PyTorch implementations for select
 - [MAICQ](https://arxiv.org/abs/2106.03400)
 - [OMAR](https://arxiv.org/abs/2111.11188) (Centralized Critic)
 - [CFCQL](https://arxiv.org/abs/2309.12696)
+- [OMIGA](https://arxiv.org/abs/2307.11620)
 
 we also implement selected [Multi-Task versions](https://github.com/zzq-bot/mt_offpymarl) to tackle with the population-invariante issue for BC, QMIX+CQL and MATD+BC.
 

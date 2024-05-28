@@ -2,7 +2,6 @@ import copy
 import torch as th
 import numpy as np
 import torch.nn.functional as F
-from torch.distributions import Categorical
 from torch.optim import RMSprop, Adam
 
 from modules.mixers.qmix import QMixer

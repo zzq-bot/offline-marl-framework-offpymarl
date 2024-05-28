@@ -1,5 +1,4 @@
 import copy
-from components.episode_buffer import EpisodeBatch
 from modules.mixers.vdn import VDNMixer
 from modules.mixers.qmix import QMixer
 from modules.mixers.nmix import Mixer

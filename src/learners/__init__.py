@@ -9,6 +9,7 @@ from .icq_learner import ICQLearner
 from .itd3_learner import ITD3Learner
 from .omar_learner import OMARLearner
 from .cfcq_learner import CFCQLearner
+from .omiga_learner import OMIGALearner
 
 REGISTRY = {}
 
@@ -23,4 +24,5 @@ REGISTRY["icq_learner"] = ICQLearner
 REGISTRY["itd3_learner"] = ITD3Learner
 REGISTRY["omar_learner"] = OMARLearner
 REGISTRY["cfcq_learner"] = CFCQLearner
+REGISTRY["omiga_learner"] = OMIGALearner
 

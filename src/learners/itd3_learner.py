@@ -5,7 +5,6 @@ import torch.nn.functional as F
 from torch.optim import RMSprop, Adam
 from controllers.maddpg_controller import gumbel_softmax
 from modules.critics import REGISTRY as critic_registry
-from modules.critics.itd3 import ITD3Critic
 from components.standarize_stream import RunningMeanStd
 
 
@@ -73,7 +72,7 @@ class ITD3Learner:
             batch_size = batch.batch_size
         
             critic_inputs = self._build_critic_inputs(batch)
-            avail_actions = batch["avail_actions"][:, :-1]
+            # avail_actions = batch["avail_actions"][:, :-1]
             actions_4bc = batch["actions"][:, :-1]
             terminated = batch["terminated"][:, :-1].float()
             terminated = terminated.unsqueeze(2).expand(-1, -1, self.n_agents, -1) # (bs, T-1, n_agents, 1)
@@ -206,7 +205,7 @@ class ITD3Learner:
 
         rewards = batch["reward"][:, :-1] # (bs, T-1, 1)
         actions = batch["actions_onehot"]
-        avail_actions = batch["avail_actions"][:, :-1]
+        # avail_actions = batch["avail_actions"][:, :-1]
         terminated = batch["terminated"][:, :-1].float()
         rewards = rewards.unsqueeze(2).expand(-1, -1, self.n_agents, -1) # (bs, T-1, n_agents, 1)
         terminated = terminated.unsqueeze(2).expand(-1, -1, self.n_agents, -1) # (bs, T-1, n_agents, 1)

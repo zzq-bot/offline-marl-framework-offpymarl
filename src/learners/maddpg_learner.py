@@ -1,6 +1,4 @@
 import copy
-from components.episode_buffer import EpisodeBatch
-from modules.critics.maddpg import MADDPGCritic
 import torch as th
 from torch.optim import RMSprop, Adam
 from controllers.maddpg_controller import gumbel_softmax

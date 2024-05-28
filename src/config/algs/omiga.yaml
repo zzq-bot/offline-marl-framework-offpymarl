@@ -1,0 +1,31 @@
+# --- QMIX+CQL specific parameters ---
+
+# use epsilon greedy action selector
+action_selector: "epsilon_greedy"
+epsilon_start: 1.0
+epsilon_finish: 0.05
+epsilon_anneal_time: 50000
+
+runner: "episode"
+
+buffer_size: 5000
+
+# update the target network every {} episodes
+target_update_interval_or_tau: 0.005
+
+# use the Q_Learner to train
+agent_output_type: "pi_logits"
+learner: "omiga_learner"
+
+rnn_hidden_dim: 128
+critic_hidden_dim: 256
+
+
+mixer: "lmix"
+mixing_embed_dim: 64
+
+alpha_temp: 10
+
+
+name: "omiga"
+

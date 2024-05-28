@@ -1,9 +1,7 @@
 import os
 import h5py
-import copy
 import torch as th
 import numpy as np
-import torch.nn.functional as F
 
 ############## DataBatch ##############
 class OfflineDataBatch():

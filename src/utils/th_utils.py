@@ -1,4 +1,3 @@
-import torch
 from torch import nn
 
 def clip_by_tensor(t,t_min,t_max):
