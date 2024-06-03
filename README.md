@@ -32,8 +32,14 @@ quality is optinal in ['random', 'medium', 'expert', 'full'].
 
 if save_replay_buffer is set, it will generate 'medium_replay', 'expert_replay' offline data with adequate offline_data_quality param.
 
-We also provide the data link in [Google Drive URL](https://drive.google.com/drive/folders/1FzSetZJ89Vq99o8LQHXiIxU9_tS70laE?usp=sharing) for quick start.
-After putting the full dataset in dataset folder, you can run experiments in our pre-defined task sets.
+## Offline Dataset
+
+We provide the small-scale datasets (less than 4k episodes) in [Google Drive](https://drive.google.com/drive/folders/1FzSetZJ89Vq99o8LQHXiIxU9_tS70laE?usp=sharing) for a quick start.
+After placing the full dataset in the dataset folder, you can run experiments using our predefined task sets.
+
+Additionally, we now support the use of [OG-MARL](https://github.com/instadeepai/og-marl) datasets. To integrate this with the (off)pymarl pipeline, we have transformed it into an H5 file as demonstrated in `src/transform_data.ipynb` (please refer to this file for details).
+
+Benchmarking on OG-MARL is currently in progress...
 
 
 
@@ -61,4 +67,5 @@ If you use OffPyMARL your work, please use the following bibtex
 ```
 
 ## Acknowledgements
-We thank [ODIS](https://github.com/LAMDA-RL/ODIS) for providing data collection related code and [EPyMARL](https://github.com/uoe-agents/epymarl) for providing MADDPG related code.
+We thank [ODIS](https://github.com/LAMDA-RL/ODIS) for providing data collection related code and [EPyMARL](https://github.com/uoe-agents/epymarl) for providing MADDPG related code. 
+

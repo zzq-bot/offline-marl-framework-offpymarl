@@ -44,6 +44,7 @@ t_max: 40000 # 40000 training gradient steps
 offline_data_folder: "dataset"
 offline_bottom_data_path: ""
 offline_data_quality: "expert"
-offline_max_buffer_size: 4000
+# offline_max_buffer_size: 4000
+offline_max_buffer_size: 10000
 offline_data_shuffle: False
 offline_data_type: "h5"

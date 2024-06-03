@@ -5,11 +5,12 @@ tmp*
 output/
 outputs/
 data/
-dataset/
+*dataset/
 dataset_backup/
 3rdparty/
 results/
 .vscode/
+benchmarking/
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,visualstudiocode
@@ -19,6 +20,7 @@ results/
 __pycache__/
 *.py[cod]
 *$py.class
+
 
 # C extensions
 *.so

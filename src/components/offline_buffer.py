@@ -126,7 +126,10 @@ class OfflineBufferH5(): # One Task
 
     def sample(self, batch_size):
         sampled_ep_idx = np.random.choice(self.buffer_size, batch_size, replace=False)
+        
         sampled_data = {k: th.tensor(v[sampled_ep_idx]) for k, v in self.data.items()}
+        if self.args.use_corrected_terminated and "corrected_terminated" in sampled_data:
+            sampled_data["terminated"] = sampled_data["corrected_terminated"]
         """sampled_data = {}
         for k, v in self.data.items():
             dtype = self.scheme[k].get("dtype", th.float32) if self.scheme is not None and k in self.scheme else th.float32
@@ -204,7 +207,10 @@ class DataSaver():
         with h5py.File(save_file, 'w') as file:
             for k, v in data_dict.items():
                 file.create_dataset(k, data=v, compression='gzip', compression_opts=9)
-        self.logger.console_logger.info("Save offline buffer to {} with {} episodes".format(save_file, self.cur_size))
+        if self.logger is not None:
+            self.logger.console_logger.info("Save offline buffer to {} with {} episodes".format(save_file, self.cur_size))
+        else:
+            print("Save offline buffer to {} with {} episodes".format(save_file, self.cur_size))
         self.data_batch.clear()
         self.cur_size = 0
         self.part_cnt += 1
