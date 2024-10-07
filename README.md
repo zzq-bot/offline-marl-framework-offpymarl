@@ -25,8 +25,8 @@ bash install_smac.sh
 
 ## Collect Data
 ```bash
-python src/main.py --collect --config=<alg> --env-config=sc2_collect with env_args.map_name=<map_name> offline_data_quality=<quality> save_replay_buffer=<whether_to_save_replay>
-num_episodes_collected=<num_episodes_per_collection> stop_winrate=<stop_winrate> --seed=<seed>
+python src/main.py --collect --config=<alg> --env-config=sc2_collect --map_name=<map_name> --offline_data_quality=<quality> --save_replay_buffer=<whether_to_save_replay>
+--num_episodes_collected=<num_episodes_per_collection> --stop_winrate=<stop_winrate> --seed=<seed>
 ```
 quality is optinal in ['random', 'medium', 'expert', 'full'].
 
